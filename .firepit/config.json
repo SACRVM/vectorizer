@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "id": "vectorizer",
+  "commands": [
+    { "name": "Serve", "type": "Shell", "icon": "🚀", "command": "cmd",
+      "args": ["/c", "npx", "serve", ".", "-l", "3341"],
+      "window": "reuse:serve", "longRunning": true },
+    { "name": "Open", "type": "Url", "icon": "✒️", "url": "http://localhost:3341/" },
+    { "name": "GitHub", "type": "Url", "icon": "🐙", "url": "https://github.com/SACRVM/vectorizer" }
+  ]
+}

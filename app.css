@@ -1,0 +1,130 @@
+/* Vectorizer — scoped to the app element, never :root (on a desktop that
+   would repaint the host around it). Tokens only; the one literal colour is
+   the "White" preview backdrop, which is paper, not theme. The accent comes
+   from app.json via the host (standalone: index.html). */
+
+app-vectorizer {
+    display: block;
+    height: 100%;
+}
+body.app-page > app-vectorizer { flex: 1; min-height: 0; }
+
+app-vectorizer .vz-root { height: 100%; min-height: 0; }
+app-vectorizer .vz-split { flex: 1; min-width: 0; min-height: 0; }
+/* The split's divider draws the edge — no second hairline from the sidebar. */
+app-vectorizer .vz-panel:not([open]) { border-right: none; }
+
+/* ---- stage: two panes under one pan-zoom transform ---- */
+app-vectorizer .vz-stage {
+    position: relative;
+    display: flex;
+    width: 100%;
+    height: 100%;
+    background: var(--viewport-bg);
+}
+app-vectorizer .vz-pane {
+    min-width: 0;
+    min-height: 0;
+    cursor: grab;
+}
+app-vectorizer .vz-pane-src { border-right: 1px solid var(--border); }
+app-vectorizer .vz-pane .pz-layer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px 24px;
+    box-sizing: border-box;
+}
+app-vectorizer .vz-pane-label {
+    position: absolute;
+    top: 12px;
+    left: 16px;
+    z-index: 5;
+    pointer-events: none;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+/* The kit sizes every canvas to its box; this one keeps the image's aspect. */
+app-vectorizer canvas.vz-src {
+    width: auto !important;
+    height: auto !important;
+    max-width: 100%;
+    max-height: 100%;
+    background-color: var(--lift);   /* transparent source pixels trace as background */
+}
+app-vectorizer .vz-svg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+app-vectorizer .vz-svg svg {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    display: block;
+}
+
+/* Preview backdrops behind the vector. */
+app-vectorizer .vz-stage[data-bg="checker"] .vz-svg svg {
+    --checker-size: 16px;
+    background-color: var(--checker-a);
+    background-image:
+        linear-gradient(45deg, var(--checker-b) 25%, transparent 25%, transparent 75%, var(--checker-b) 75%),
+        linear-gradient(45deg, var(--checker-b) 25%, transparent 25%, transparent 75%, var(--checker-b) 75%);
+    background-size: var(--checker-size) var(--checker-size);
+    background-position: 0 0, calc(var(--checker-size) / 2) calc(var(--checker-size) / 2);
+}
+app-vectorizer .vz-stage[data-bg="white"] .vz-svg svg { background: #ffffff; }
+app-vectorizer .vz-stage[data-bg="dark"] .vz-svg svg { background: var(--panel); }
+
+/* Nothing loaded → no surfaces, just the empty state. */
+app-vectorizer .vz-stage:not(.has-image) .vz-src,
+app-vectorizer .vz-stage:not(.has-image) .vz-svg { display: none; }
+app-vectorizer .vz-empty {
+    position: absolute;
+    inset: 0;
+    justify-content: center;
+    pointer-events: none;
+}
+app-vectorizer .vz-stage.has-image .vz-empty { display: none; }
+app-vectorizer .vz-stage.dragover {
+    outline: 2px dashed var(--accent);
+    outline-offset: -10px;
+}
+
+app-vectorizer .vz-busy[hidden] { display: none; }
+app-vectorizer .vz-busy {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    --spinner-size: 14px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--accent-text);
+    background: var(--glass);
+    padding: 6px 12px;
+    border-radius: 999px;
+    backdrop-filter: blur(6px);
+}
+
+app-vectorizer .vz-help { padding: 16px; font-size: 0.85rem; line-height: 1.6; }
+app-vectorizer .vz-help h3 { color: var(--accent-text); margin-top: 0; }
+app-vectorizer .vz-help ol { padding-left: 18px; margin: 8px 0; }
+
+/* Narrow: the panes stack instead of squeezing side by side. */
+@media (max-width: 768px) {
+    app-vectorizer .vz-stage { flex-direction: column; }
+    app-vectorizer .vz-pane-src { border-right: none; border-bottom: 1px solid var(--border); }
+}

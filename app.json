@@ -1,0 +1,17 @@
+{
+    "id": "vectorizer",
+    "name": "Vectorizer",
+    "icon": "vector",
+    "accent": "#f59e0b",
+    "description": "Trace black & white images into clean SVG paths — logos, line art, stencils. Runs entirely in the browser.",
+    "kind": "view",
+    "tag": "app-vectorizer",
+    "entry": "app.js",
+    "version": "1.0.0",
+    "notices": [
+        {
+            "title": "Tracing engine",
+            "text": "ImageTracer.js 1.2.6 by András Jankovics — released into the public domain (The Unlicense). Vendored unchanged in vendor/."
+        }
+    ]
+}
