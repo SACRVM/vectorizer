@@ -48,11 +48,8 @@ app-vectorizer .vz-pane-label {
     color: var(--text-muted);
 }
 
-/* The kit sizes every canvas to its box; this one keeps the image's aspect. */
+/* canvas.natural keeps the image's aspect; it also has to fit the pane's height. */
 app-vectorizer canvas.vz-src {
-    width: auto !important;
-    height: auto !important;
-    max-width: 100%;
     max-height: 100%;
     background-color: var(--lift);   /* transparent source pixels trace as background */
 }
@@ -89,9 +86,8 @@ app-vectorizer .vz-stage:not(.has-image) .vz-src,
 app-vectorizer .vz-stage:not(.has-image) .vz-svg { display: none; }
 /* ---- empty state: the shared .app-drop block (same in all four DREAM
    TOOLS-born apps — keep it identical). The zone lies on --viewport-bg,
-   which is black in BOTH themes, so its ink and glass are re-pointed at
-   --lift (white in both themes) instead of the theme's text tokens. The
-   wrapper clears the top label row and the bottom HUD. ---- */
+   which is black in BOTH themes, so it carries the kit's .on-viewport
+   class. The wrapper clears the top label row and the bottom HUD. ---- */
 .app-drop {
     position: absolute;
     inset: 0;
@@ -103,12 +99,6 @@ app-vectorizer .vz-stage:not(.has-image) .vz-svg { display: none; }
     pointer-events: none;
 }
 .app-drop sac-drop-zone {
-    --text:          color-mix(in srgb, var(--lift) 90%, transparent);
-    --text-muted:    color-mix(in srgb, var(--lift) 62%, transparent);
-    --text-dim:      color-mix(in srgb, var(--lift) 45%, transparent);
-    --glass:         color-mix(in srgb, var(--lift) 5%, var(--viewport-bg));   /* opaque: nothing shows through */
-    --hover:         color-mix(in srgb, var(--lift) 7%, transparent);
-    --border-strong: color-mix(in srgb, var(--lift) 30%, transparent);
     --drop-zone-min-height: 120px;
     width: min(320px, 100%);
     pointer-events: auto;

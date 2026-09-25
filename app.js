@@ -162,7 +162,7 @@
         <button type="button" class="btn vz-open" title="Open an image (Ctrl+O)">
             <sac-icon name="folder"></sac-icon> Open
         </button>
-        <button type="button" class="btn primary vz-save" data-overflow="never" title="Save the traced SVG (Ctrl+S)" disabled>
+        <button type="button" class="btn primary vz-save" title="Save the traced SVG (Ctrl+S)" disabled>
             <sac-icon name="download"></sac-icon> SVG
         </button>
         <button type="button" class="nav-icon-btn vz-copy" title="Copy SVG markup" disabled>
@@ -194,7 +194,7 @@
 
             <sac-section title="Trace quality">
                 <sac-slider class="vz-despeckle" data-keep="despeckle" label="Despeckle" min="0" max="40" step="1" value="8" suffix=" px"></sac-slider>
-                <sac-slider class="vz-smooth" data-keep="smoothing" label="Smoothing" min="0" max="100" step="1" value="50" suffix="%"></sac-slider>
+                <sac-slider class="vz-smooth" data-keep="smoothing" label="Smoothing" min="0" max="100" step="1" value="50" suffix="%" ends="Crisp,Smooth"></sac-slider>
                 <sac-toggle class="vz-rightangle" data-keep="rightangle" label="Right-angle enhance" checked></sac-toggle>
             </sac-section>
 
@@ -216,14 +216,14 @@
         <div class="vz-stage" slot="end" data-bg="checker">
             <div class="viewport vz-pane vz-pane-src">
                 <span class="vz-pane-label">Source</span>
-                <div class="pz-layer"><canvas class="vz-src"></canvas></div>
+                <div class="pz-layer"><canvas class="natural vz-src"></canvas></div>
             </div>
             <div class="viewport vz-pane vz-pane-svg">
                 <span class="vz-pane-label">Vector (SVG)</span>
                 <div class="pz-layer"><div class="vz-svg"></div></div>
             </div>
             <div class="app-drop vz-empty">
-                <sac-drop-zone accept="image/png,image/jpeg,image/webp,image/bmp" label="Drop an image"
+                <sac-drop-zone class="on-viewport" accept="image/png,image/jpeg,image/webp,image/bmp" label="Drop an image"
                                hint="or click to open" touch-label="Open an image" touch-hint=""></sac-drop-zone>
             </div>
             <sac-hud class="vz-hud" position="bottom-left"></sac-hud>
