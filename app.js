@@ -149,7 +149,7 @@
         <button type="button" class="btn vz-open" title="Open an image (Ctrl+O)">
             <sac-icon name="folder"></sac-icon> Open
         </button>
-        <button type="button" class="btn primary vz-save" title="Save the traced SVG (Ctrl+S)" disabled>
+        <button type="button" class="btn primary vz-save" data-overflow="never" title="Save the traced SVG (Ctrl+S)" disabled>
             <sac-icon name="download"></sac-icon> SVG
         </button>
         <button type="button" class="nav-icon-btn vz-copy" title="Copy SVG markup" disabled>
