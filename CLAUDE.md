@@ -79,6 +79,53 @@ background-remover, mesh-optimizer, svg-to-3d) — keep them identical.
 
 **Language:** chat in German, code/docs/commits in English.
 
+## Develop, test, publish
+
+Shared by the four apps that came out of DREAM TOOLS — keep identical.
+
+- **Dev loop:** `npx serve . -l 3341` (Firepit command "Serve"), F5. `serve.json`
+  disables caching.
+- **Test both runtimes — they fail differently.** Standalone (`index.html`,
+  vendored kit) AND installed on https://desktop.sacrvm.dev/ (the host's kit
+  is live there; the app is injected into the host page). Recipe and a
+  template script: global knowledge doc "Headless-testing SACRVM appkit apps"
+  (`firepit_knowledge_search`). Stub `context.files.save/open` in tests —
+  real pickers hang headless.
+- **Always check:** dark + light theme + a 390px phone viewport (look at the
+  screenshots), console clean, settings survive a reload, every export
+  arrives, Ctrl+O / Ctrl+S.
+- **Publish:** bump `version` in `app.json` (semver: fix = patch, feature =
+  minor), commit, push to `main`. GitHub Pages serves `main` / root; wait
+  until `https://sacrvm.github.io/<repo>/app.json` shows the new version,
+  then re-test installed on the desktop. The repo carries the topic
+  `sacrvm-app` → listed in the desktop's App Store. Desktops store the
+  address, not a copy: every push is live for every installation.
+- **Kit upgrade:** delete `kit/`, unzip the new release's `kit/` verbatim
+  (`gh release download vX.Y.Z -R SACRVM/sacrvm-appkit`), check
+  `CONSUMING.md` / `MIGRATION.md` for breakers, test both runtimes, commit
+  "Vendor SACRVM APPKIT X.Y.Z". Never edit `kit/`.
+- **Siblings:** vectorizer, background-remover, mesh-optimizer, svg-to-3d
+  share the UI conventions and the `_restoreSettings` / `_about` /
+  `_wireDropZone` / `_registerFileKeys` snippet byte-for-byte. A change to
+  either belongs in all four — say so in the commit.
+
+## Open items
+
+Waiting on the appkit (reported 2026-09-25 — pick up when a release ships it,
+then re-vendor):
+- Hold-key hotkeys in `sac.hotkeys` (Space-to-pan is manual today — n/a here
+  unless added).
+- Canvas opt-out class (the `canvas.vz-src` rule fights the kit's global
+  `canvas { width/height: 100% !important }`).
+- `sac-slider` end labels for fractional ranges.
+
+Owner decisions open:
+- **Accent colour:** own amber (`app.json` `accent`) vs following the desktop
+  colour by default (remove `accent`). Asked 2026-09-25, not answered yet.
+- App → app hand-off (Background Remover → Vectorizer → SVG to 3D) is
+  deferred; the shared file space bridges it. The appkit has the parked idea
+  (file-type associations in `app.json`).
+
 ## Firepit inbox
 
 At the start of a session, read any pending messages in `.firepit/inbox/*.md` — cross-project notes Firepit routes here. Act on each, then mark it done with the `firepit_inbox_complete` MCP tool, passing the message's filename as the `id`.
