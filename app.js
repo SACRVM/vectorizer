@@ -146,14 +146,17 @@
             this.innerHTML = `
 <sac-nav brand="VECTORIZER" brand-icon="vector" brand-href="#/" host-nav="wide">
     <div slot="toolbar" class="toolbar">
-        <button type="button" class="btn primary vz-open" title="Open an image (PNG, JPG, WebP)">
-            <sac-icon name="image"></sac-icon> Open
+        <button type="button" class="btn vz-open" title="Open an image (Ctrl+O)">
+            <sac-icon name="folder"></sac-icon> Open
         </button>
-        <button type="button" class="btn primary vz-save" title="Save the traced SVG" disabled>
+        <button type="button" class="btn primary vz-save" title="Save the traced SVG (Ctrl+S)" disabled>
             <sac-icon name="download"></sac-icon> SVG
         </button>
-        <button type="button" class="btn vz-copy" title="Copy the SVG markup" disabled>
-            <sac-icon name="copy"></sac-icon> Copy
+        <button type="button" class="nav-icon-btn vz-copy" title="Copy SVG markup" disabled>
+            <sac-icon name="copy"></sac-icon>
+        </button>
+        <button type="button" class="nav-icon-btn vz-about-btn" title="Credits &amp; licences">
+            <sac-icon name="copyright"></sac-icon>
         </button>
         <button type="button" class="nav-icon-btn vz-help-btn" title="Help">
             <sac-icon name="info"></sac-icon>
@@ -169,23 +172,23 @@
             <sac-section title="Threshold">
                 <sac-slider class="vz-threshold" label="Black / white cutoff" min="1" max="254" step="1" value="128"></sac-slider>
                 <sac-toggle class="vz-alpha" label="Alpha as mask (silhouette)"></sac-toggle>
-                <sac-toggle class="vz-invert" label="Invert (trace white)"></sac-toggle>
-                <sac-toggle class="vz-auto" label="Auto threshold (Otsu)" checked></sac-toggle>
+                <sac-toggle class="vz-invert" data-keep="invert" label="Invert (trace white)"></sac-toggle>
+                <sac-toggle class="vz-auto" data-keep="auto" label="Auto threshold (Otsu)" checked></sac-toggle>
             </sac-section>
 
             <sac-section title="Trace quality">
-                <sac-slider class="vz-despeckle" label="Despeckle (tiny blobs)" min="0" max="40" step="1" value="8"></sac-slider>
-                <sac-slider class="vz-smooth" label="Smoothing" min="0.01" max="4" step="0.01" value="1"></sac-slider>
-                <sac-toggle class="vz-rightangle" label="Right-angle enhance" checked></sac-toggle>
+                <sac-slider class="vz-despeckle" data-keep="despeckle" label="Despeckle (tiny blobs)" min="0" max="40" step="1" value="8"></sac-slider>
+                <sac-slider class="vz-smooth" data-keep="smooth" label="Smoothing" min="0.01" max="4" step="0.01" value="1"></sac-slider>
+                <sac-toggle class="vz-rightangle" data-keep="rightangle" label="Right-angle enhance" checked></sac-toggle>
             </sac-section>
 
             <sac-section title="Output">
-                <sac-color-field class="vz-fill" label="Fill color" value="#000000"></sac-color-field>
-                <sac-toggle class="vz-keepbg" label="Keep background fill"></sac-toggle>
-                <sac-toggle class="vz-nodes" label="Show nodes (anchor points)"></sac-toggle>
+                <sac-color-field class="vz-fill" data-keep="fill" label="Fill color" value="#000000"></sac-color-field>
+                <sac-toggle class="vz-keepbg" data-keep="keepbg" label="Keep background fill"></sac-toggle>
+                <sac-toggle class="vz-nodes" data-keep="nodes" label="Show nodes (anchor points)"></sac-toggle>
                 <div>
                     <label>Preview backdrop</label>
-                    <sac-segmented-control class="vz-backdrop" value="checker">
+                    <sac-segmented-control class="vz-backdrop" data-keep="backdrop" value="checker">
                         <button data-value="checker">Checker</button>
                         <button data-value="white">White</button>
                         <button data-value="dark">Dark</button>
@@ -203,10 +206,9 @@
                 <span class="vz-pane-label">Vector (SVG)</span>
                 <div class="pz-layer"><div class="vz-svg"></div></div>
             </div>
-            <div class="empty-state vz-empty">
-                <sac-icon name="vector"></sac-icon>
-                <b>Drop an image here, click Open, or paste one</b>
-                <p>Best with clean black &amp; white art — logos, line drawings, stencils.</p>
+            <div class="app-drop vz-empty">
+                <sac-drop-zone accept="image/png,image/jpeg,image/webp,image/bmp" label="Drop an image"
+                               hint="or click to open" touch-label="Open an image" touch-hint=""></sac-drop-zone>
             </div>
             <sac-hud class="vz-hud" position="bottom-left"></sac-hud>
             <div class="vz-busy" hidden><sac-spinner label="Tracing"></sac-spinner><span>Tracing…</span></div>
@@ -230,6 +232,9 @@
         <p><b>Got a colourful logo?</b> Open a cut-out (a transparent PNG) and
            <b>Alpha as mask</b> turns on by itself — everything solid becomes one silhouette,
            colours ignored.</p>
+        <p><b>Open</b> an image (Ctrl+O), drop it on the stage or paste it (Ctrl+V) — PNG, JPG, WebP, BMP.
+           <b>SVG</b> saves the trace (Ctrl+S, always asks where), the copy button puts the SVG markup
+           on the clipboard.</p>
         <p>The preview updates live and is exactly what gets saved. Wheel to zoom, drag to pan,
            double-click to reset — both panes move together.</p>
     </div>
@@ -270,7 +275,6 @@
             this._rawSVG = "";        // ImageTracer output, before clean-up
             this._svg = "";           // cleaned — what gets saved
             this._name = "vectorized";
-            this._fileRef = null;     // Save goes back to the same file
 
             this._pz = sac.setupPanZoom({
                 panes: [
@@ -284,6 +288,7 @@
             this._wireToolbar();
             this._wireControls();
             this._wireDrop();
+            this._wireDropZone((file) => this._loadFile(file, null));
 
             // Paste and keys only while the app is actually on screen — on a
             // desktop a hidden view must not swallow somebody else's Ctrl+V.
@@ -292,6 +297,8 @@
                 this._setVisible(entries[entries.length - 1].isIntersecting);
             });
             this._io.observe(this);
+
+            this._restoreSettings();
         }
 
         onUnmount() {
@@ -304,8 +311,92 @@
         _setVisible(on) {
             if (on === !!this._visible) return;
             this._visible = on;
-            if (on) document.addEventListener("paste", this._onPaste);
-            else document.removeEventListener("paste", this._onPaste);
+            if (on) {
+                document.addEventListener("paste", this._onPaste);
+                this._offKeys = this._registerFileKeys(() => this._save());
+            } else {
+                document.removeEventListener("paste", this._onPaste);
+                this._offKeys?.();
+                this._offKeys = null;
+            }
+        }
+
+
+        /* ------------------------------------------------ the app shell ---- *
+         * Shared by the four DREAM-TOOLS-born apps (vectorizer, background-
+         * remover, mesh-optimizer, svg-to-3d) — keep the copies in step.
+         *   · settings: every control with data-keep is remembered in
+         *     context.fs ("settings") and restored by replaying its event;
+         *   · credits: sac.about from the manifest (notices included);
+         *   · the empty state is a sac-drop-zone whose click goes through
+         *     context.files (the host's file space), not the device picker.
+         * ------------------------------------------------------------------ */
+
+        _keepValue(el) {
+            return el.tagName === "SAC-TOGGLE" ? el.checked : el.value;
+        }
+
+        async _restoreSettings() {
+            let saved = null;
+            try { saved = await this._ctx.fs?.read("settings", null); } catch { saved = null; }
+            if (saved && typeof saved === "object") {
+                for (const el of this.querySelectorAll("[data-keep]")) {
+                    const key = el.dataset.keep;
+                    if (!(key in saved)) continue;
+                    const v = saved[key];
+                    const fire = (type, value) => el.dispatchEvent(new CustomEvent(type, { detail: { value }, bubbles: true }));
+                    if (el.tagName === "SAC-TOGGLE") { el.checked = !!v; fire("sac:change", !!v); }
+                    else if (el.tagName === "INPUT") { el.value = v; el.dispatchEvent(new Event("input", { bubbles: true })); }
+                    else if (el.tagName === "SAC-SLIDER") { el.value = String(v); fire("sac:input", String(v)); fire("sac:change", String(v)); }
+                    else { el.value = String(v); fire("sac:change", String(v)); }
+                }
+            }
+            // Watch only after restoring, so the replay above does not write back.
+            const save = () => {
+                clearTimeout(this._keepTimer);
+                this._keepTimer = setTimeout(() => {
+                    const out = {};
+                    for (const el of this.querySelectorAll("[data-keep]")) out[el.dataset.keep] = this._keepValue(el);
+                    Promise.resolve(this._ctx.fs?.write("settings", out)).catch(() => {});
+                }, 400);
+            };
+            for (const el of this.querySelectorAll("[data-keep]")) {
+                for (const type of ["sac:change", "sac:input", "input"]) el.addEventListener(type, save);
+            }
+        }
+
+        async _about() {
+            if (!this._manifest) {
+                this._manifest = this._ctx.manifest
+                    || await fetch(BASE + "app.json").then((r) => r.json()).catch(() => null);
+            }
+            if (sac.about) sac.about.open(this._manifest || { name: this.tagName.toLowerCase() });
+        }
+
+        _wireDropZone(onFile) {
+            const wrap = this.querySelector(".app-drop");
+            const zone = wrap.querySelector("sac-drop-zone");
+            // Click / Enter / Space open through context.files, like the Open button.
+            const intercept = (e) => {
+                if (e.type === "keydown" && e.key !== "Enter" && e.key !== " ") return;
+                if (!e.composedPath().includes(zone)) return;
+                e.preventDefault();
+                e.stopPropagation();
+                this._open();
+            };
+            wrap.addEventListener("click", intercept, true);
+            wrap.addEventListener("keydown", intercept, true);
+            zone.addEventListener("sac:files", (e) => { const f = e.detail.files[0]; if (f) onFile(f); });
+            zone.addEventListener("sac:rejected", () => sac.toast?.("That file type does not open here.", { kind: "warn" }));
+        }
+
+        /** Ctrl+O / Ctrl+S — only while the app is on screen. */
+        _registerFileKeys(saveFn) {
+            const offs = [
+                sac.hotkeys.register("mod+o", () => this._open(), { group: "File", description: "Open" }),
+                sac.hotkeys.register("mod+s", () => saveFn(), { group: "File", description: "Save / export" }),
+            ];
+            return () => offs.forEach((off) => off());
         }
 
         /* --------------------------------------------------------- wiring -- */
@@ -314,6 +405,7 @@
             this.querySelector(".vz-open").addEventListener("click", () => this._open());
             this._saveBtn.addEventListener("click", () => this._save());
             this._copyBtn.addEventListener("click", () => this._copy());
+            this.querySelector(".vz-about-btn").addEventListener("click", () => this._about());
             this.querySelector(".vz-help-btn").addEventListener("click", () => this.querySelector(".vz-help-win").open());
         }
 
@@ -351,6 +443,7 @@
             ["dragleave", "drop"].forEach((ev) =>
                 stage.addEventListener(ev, (e) => { e.preventDefault(); stage.classList.remove("dragover"); }));
             stage.addEventListener("drop", (e) => {
+                if (e.composedPath().some((n) => n.tagName === "SAC-DROP-ZONE")) return;   // the zone handles its own drop
                 const file = e.dataTransfer?.files?.[0];
                 if (file) this._loadFile(file, null);
             });
@@ -378,7 +471,6 @@
                 return;
             }
             this._name = (file.name && file.name.replace(/\.[^.]+$/, "")) || "vectorized";
-            this._fileRef = ref;
             const url = URL.createObjectURL(file);
             const img = new Image();
             img.onload = () => { URL.revokeObjectURL(url); this._ingest(img); };
@@ -430,10 +522,8 @@
             try {
                 const saved = await this._ctx.files.save(blob, {
                     name: this._name + ".svg", accept: ".svg", title: "Save SVG",
-                    handle: this._fileRef?.handle,
                 });
                 if (!saved) return;
-                this._fileRef = saved;
                 sac.toast?.(`Saved ${saved.name}`, { kind: "success" });
             } catch (err) {
                 console.error("[vectorizer] save failed:", err);

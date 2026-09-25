@@ -24,6 +24,9 @@ pan together; the right pane is exactly what gets saved.
   overlay, and a checker / white / dark preview backdrop.
 - **In:** open, drop or paste (Ctrl+V) a PNG, JPG, WebP or BMP.
   **Out:** save the SVG or copy its markup.
+- **Remembers** your trace and output settings; Ctrl+O opens, Ctrl+S saves the
+  SVG. Every save asks where the file goes. Credits and licences are one click
+  away in the toolbar.
 
 ## Install on a desktop
 

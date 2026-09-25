@@ -26,6 +26,28 @@ as the standalone harness, and `kit/` — the vendored kit.
 - If the kit is missing something, route it to the appkit via Firepit instead
   of working around it here.
 
+## UI conventions
+
+Shared by the four apps that came out of DREAM TOOLS (vectorizer,
+background-remover, mesh-optimizer, svg-to-3d) — keep them identical.
+
+1. **Toolbar order:** Open (`btn`, icon `folder`) · main export (`btn primary`,
+   icon `download`, label = format) · further formats in one `sac-menu` · Copy
+   (`nav-icon-btn`) · app-specific icon buttons · Credits (`copyright`) · Help
+   (`info`).
+2. **Exports always ask** (Save as…) — no silent overwrite through a kept handle.
+3. **Credits via `sac.about`** from the manifest — the `notices` in `app.json`
+   are what users see, keep them complete.
+4. **Empty state = `sac-drop-zone`** (`.app-drop`); its click / Enter go through
+   `context.files.open`, not the device picker.
+5. **Settings are remembered:** controls with `data-keep="key"` are saved to
+   `context.fs` ("settings") and replayed on mount. Per-document values
+   (e.g. a threshold fitted to one image) are not kept.
+6. **Ctrl+O / Ctrl+S** through `sac.hotkeys`, registered only while the app is
+   on screen.
+7. **No prose on the UI.** Panels and the empty state carry controls and short
+   labels only — every explanation goes into the Help window.
+
 **Language:** chat in German, code/docs/commits in English.
 
 ## Firepit inbox
