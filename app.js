@@ -28,6 +28,18 @@
     const NODE_SCREEN_R = 3.5;    // node marker radius in SCREEN px, constant at any zoom
     const SVG_NS = "http://www.w3.org/2000/svg";
 
+    /* Smoothing is shown as 0–100 %; the tracer wants a line/curve tolerance
+       of 0.01–4. Piecewise linear so 50 % is exactly the old default 1.0. */
+    const smoothTolerance = (pct) => {
+        const p = Math.max(0, Math.min(100, Number.isFinite(pct) ? pct : 50));
+        return p <= 50 ? 0.01 + 0.99 * (p / 50) : 1 + 3 * ((p - 50) / 50);
+    };
+    const smoothPercent = (tol) => {
+        if (!Number.isFinite(tol)) return 50;
+        const t = Math.max(0.01, Math.min(4, tol));
+        return Math.round(t <= 1 ? ((t - 0.01) / 0.99) * 50 : 50 + ((t - 1) / 3) * 50);
+    };
+
     /* ------------------------------------------------------------ engine -- */
 
     let enginePromise = null;
@@ -145,6 +157,7 @@
             sac.app.styles(BASE + "app.css", CSS_ID);
             this.innerHTML = `
 <sac-nav brand="VECTORIZER" brand-icon="vector" brand-href="#/" host-nav="wide">
+    <div slot="context" class="vz-theme"><sac-theme-toggle></sac-theme-toggle></div>
     <div slot="toolbar" class="toolbar">
         <button type="button" class="btn vz-open" title="Open an image (Ctrl+O)">
             <sac-icon name="folder"></sac-icon> Open
@@ -154,6 +167,9 @@
         </button>
         <button type="button" class="nav-icon-btn vz-copy" title="Copy SVG markup" disabled>
             <sac-icon name="copy"></sac-icon>
+        </button>
+        <button type="button" class="nav-icon-btn vz-fit" title="Reset view">
+            <sac-icon name="fit"></sac-icon>
         </button>
         <button type="button" class="nav-icon-btn vz-about-btn" title="Credits &amp; licences">
             <sac-icon name="copyright"></sac-icon>
@@ -177,8 +193,8 @@
             </sac-section>
 
             <sac-section title="Trace quality">
-                <sac-slider class="vz-despeckle" data-keep="despeckle" label="Despeckle (tiny blobs)" min="0" max="40" step="1" value="8"></sac-slider>
-                <sac-slider class="vz-smooth" data-keep="smooth" label="Smoothing" min="0.01" max="4" step="0.01" value="1"></sac-slider>
+                <sac-slider class="vz-despeckle" data-keep="despeckle" label="Despeckle" min="0" max="40" step="1" value="8" suffix=" px"></sac-slider>
+                <sac-slider class="vz-smooth" data-keep="smoothing" label="Smoothing" min="0" max="100" step="1" value="50" suffix="%"></sac-slider>
                 <sac-toggle class="vz-rightangle" data-keep="rightangle" label="Right-angle enhance" checked></sac-toggle>
             </sac-section>
 
@@ -225,8 +241,8 @@
            "Trace Bitmap"), built for <b>clean black &amp; white</b> art: logos, line drawings, stencils.</p>
         <ol>
             <li><b>Threshold</b> decides which pixels become solid. Auto (Otsu) usually nails it; nudging the slider switches it off.</li>
-            <li><b>Despeckle</b> drops tiny stray blobs.</li>
-            <li><b>Smoothing</b> trades crisp corners for softer curves.</li>
+            <li><b>Despeckle</b> drops stray blobs whose outline is shorter than the given length (in pixels of the traced image).</li>
+            <li><b>Smoothing</b> trades crisp corners for softer curves: 0&nbsp;% follows every pixel step, 50&nbsp;% is the balanced default, 100&nbsp;% rounds hardest.</li>
             <li><b>Right-angle enhance</b> sharpens letterforms and boxy logos.</li>
         </ol>
         <p><b>Got a colourful logo?</b> Open a cut-out (a transparent PNG) and
@@ -247,6 +263,8 @@
             const $ = (s) => this.querySelector(s);
             const nav = $("sac-nav");
             if (nav) nav.host = context.host;
+            // Standalone the app is its own page and brings a theme switch; a host has its own.
+            $(".vz-theme").hidden = !!context.host;
 
             this._stage = $(".vz-stage");
             this._srcCanvas = $(".vz-src");
@@ -298,7 +316,18 @@
             });
             this._io.observe(this);
 
-            this._restoreSettings();
+            this._migrateSettings().then(() => this._restoreSettings());
+        }
+
+        /** 1.1 kept smoothing as the raw tracer tolerance ("smooth", 0.01–4); 1.2 keeps a percent. */
+        async _migrateSettings() {
+            try {
+                const saved = await this._ctx.fs?.read("settings", null);
+                if (!saved || typeof saved !== "object" || !("smooth" in saved)) return;
+                if (!("smoothing" in saved)) saved.smoothing = smoothPercent(parseFloat(saved.smooth));
+                delete saved.smooth;
+                await this._ctx.fs.write("settings", saved);
+            } catch { /* nothing to migrate */ }
         }
 
         onUnmount() {
@@ -405,6 +434,7 @@
             this.querySelector(".vz-open").addEventListener("click", () => this._open());
             this._saveBtn.addEventListener("click", () => this._save());
             this._copyBtn.addEventListener("click", () => this._copy());
+            this.querySelector(".vz-fit").addEventListener("click", () => this._pz.reset());
             this.querySelector(".vz-about-btn").addEventListener("click", () => this._about());
             this.querySelector(".vz-help-btn").addEventListener("click", () => this.querySelector(".vz-help-win").open());
         }
@@ -592,7 +622,7 @@
                         bw = thresholdToBW(this._traceData, threshold, invert);
                     }
 
-                    const smooth = parseFloat(ui.smooth.value);
+                    const smooth = smoothTolerance(parseFloat(ui.smooth.value));
                     this._rawSVG = tracer.imagedataToSVG(bw, {
                         // curve fitting
                         ltres: smooth,

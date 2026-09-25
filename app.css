@@ -152,3 +152,6 @@ app-vectorizer .vz-help ol { padding-left: 18px; margin: 8px 0; }
     app-vectorizer .vz-stage { flex-direction: column; }
     app-vectorizer .vz-pane-src { border-right: none; border-bottom: 1px solid var(--border); }
 }
+
+/* The standalone theme switch; hidden when a host brings its own. */
+app-vectorizer .vz-theme[hidden] { display: none; }
