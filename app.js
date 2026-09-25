@@ -419,7 +419,12 @@
             const retrace = () => this._scheduleRetrace();
 
             this._on(ui.threshold, "sac:input", () => {
-                ui.auto.checked = false;   // a manual nudge disengages auto
+                // A manual nudge disengages auto. Announce it like a user flip, so
+                // the remembered settings see it too (a silent .checked would not).
+                if (ui.auto.checked) {
+                    ui.auto.checked = false;
+                    ui.auto.dispatchEvent(new CustomEvent("sac:change", { detail: { value: false }, bubbles: true }));
+                }
                 retrace();
             });
             this._on(ui.despeckle, "sac:input", retrace);
