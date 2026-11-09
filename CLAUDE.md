@@ -119,19 +119,20 @@ Shared by the four apps that came out of DREAM TOOLS — keep identical.
 
 ## Open items
 
-Kit 2.36.0 is vendored (2026-11-09; before that 2.12.0). Taken up from the
-releases in between: the quiet drop zone with one toast per `sac:rejected`
-(2.36), a solid busy pill under reduced transparency / more contrast (2.33).
-Checked and n/a here: `sac-log`, `sac-loader`, `sac-dialog` (no own
-dialogs), explicit toast durations, long-press (the viewports have no
-`contextmenu` listener, so a held finger does nothing). Not adopted yet:
-runtime language switching (`sac.lang`, `sac.t()`), collapsible
-`sac-section`.
+Kit 2.37.0 is vendored (2026-11-09; before that 2.36.0, and 2.12.0 before
+that). Taken up from the releases since 2.12: the quiet drop zone with one
+toast per `sac:rejected` (2.36), a solid busy pill under reduced
+transparency / more contrast (2.33). Checked and n/a here: `sac-log`,
+`sac-loader`, `sac-dialog` and its edit guard (no own dialogs, 2.36.1),
+explicit toast durations, long-press and `[data-no-long-press]` (the
+viewports have no `contextmenu` listener, so a held finger does nothing;
+2.36.2), `--split-back-height` (nothing sticky in the split's panels,
+2.37). Not adopted yet: runtime language switching (`sac.lang`, `sac.t()`),
+collapsible `sac-section`.
 
-Version skew: hosted on the desktop the app runs on the host's kit, so the
-2.36 behaviour (quiet zone, `detail.rejected`) appears only once
-`sacrvm-desktop` re-vendors. The snippet falls back to the bare `files`
-list of an older kit.
+Version skew: hosted on the desktop the app runs on the host's kit.
+desktop.sacrvm.dev runs 2.37 too (2026-11-09). Against an older host kit,
+`_wireDropZone` falls back to the bare `files` list of `sac:rejected`.
 
 Owner decisions open:
 - **Accent colour:** own amber (`app.json` `accent`) vs following the desktop
