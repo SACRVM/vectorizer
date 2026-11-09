@@ -85,9 +85,10 @@ app-vectorizer .vz-stage[data-bg="dark"] .vz-svg svg { background: var(--panel);
 app-vectorizer .vz-stage:not(.has-image) .vz-src,
 app-vectorizer .vz-stage:not(.has-image) .vz-svg { display: none; }
 /* ---- empty state: the shared .app-drop block (same in all four DREAM
-   TOOLS-born apps — keep it identical). The zone lies on --viewport-bg,
-   which is black in BOTH themes, so it carries the kit's .on-viewport
-   class. The wrapper clears the top label row and the bottom HUD. ---- */
+   TOOLS-born apps — keep it identical). The zone carries class
+   "on-viewport" (kit 2.12.0), so it reads dark on --viewport-bg in both
+   themes; its glass is made opaque so the scene does not show through.
+   The wrapper clears the top label row and the bottom HUD. ---- */
 .app-drop {
     position: absolute;
     inset: 0;
@@ -99,6 +100,7 @@ app-vectorizer .vz-stage:not(.has-image) .vz-svg { display: none; }
     pointer-events: none;
 }
 .app-drop sac-drop-zone {
+    --glass: color-mix(in srgb, var(--lift) 5%, var(--viewport-bg));
     --drop-zone-min-height: 120px;
     width: min(320px, 100%);
     pointer-events: auto;
@@ -131,6 +133,14 @@ app-vectorizer .vz-busy {
     padding: 6px 12px;
     border-radius: 999px;
     backdrop-filter: blur(6px);
+}
+/* The pill is a blurred surface of our own: solid, like the kit's, for
+   people who asked for less transparency or more contrast (kit ≥ 2.33). */
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    app-vectorizer .vz-busy {
+        background: var(--glass-solid);
+        backdrop-filter: none;
+    }
 }
 
 app-vectorizer .vz-help { padding: 16px; font-size: 0.85rem; line-height: 1.6; }

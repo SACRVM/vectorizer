@@ -12,8 +12,8 @@ picks the result up from the shared file space instead.
 (one custom element, classic script, guarded define), `app.css`, `index.html`
 as the standalone harness, and `kit/` — the vendored kit.
 
-- **No build step, ever.** Vanilla custom elements, plain CSS, `npx serve .`
-  and F5.
+- **No build step, ever.** Vanilla custom elements, plain CSS, a static
+  server and F5.
 - **The kit is vendored** (autark): `kit/` is the release ZIP's copy,
   verbatim — `kit/VERSION` says which — and never edited here. To upgrade,
   delete `kit/` and unzip the next release (see the appkit's `CONSUMING.md`).
@@ -32,21 +32,26 @@ Shared by the four apps that came out of DREAM TOOLS (vectorizer,
 background-remover, mesh-optimizer, svg-to-3d) — keep them identical.
 
 1. **Toolbar order:** Open (`btn`, icon `folder`, not primary) · main export
-   (`btn primary`, icon `download`, label = format; no `data-overflow`
-   pinning — since kit 2.12 the ribbon folds a `sac-menu` into "…" as a
-   group) · further formats in one `sac-menu` "More ▾" · Copy where it
-   applies (`nav-icon-btn`) · app-specific icon buttons · Credits (`copyright`) · Help
+   (`btn primary`, icon `download`, label = format, pinned with
+   `data-overflow="never"` — the ribbon's overflow folds from the end, so an
+   unpinned primary would vanish into "…" on a phone while Open stays) · further
+   formats in one `sac-menu` "More ▾" · Copy where it applies
+   (`nav-icon-btn`) · app-specific icon buttons · Credits (`copyright`) · Help
    (`info`).
 2. **Exports always ask** (Save as…) — no silent overwrite through a kept
    handle. Ctrl+S on an empty app does nothing.
 3. **Credits via `sac.about`** from the manifest — the `notices` in `app.json`
    are what users see, keep them complete.
 4. **Empty state = `sac-drop-zone`** in `.app-drop`, styled by the shared
-   `.app-drop` CSS block (identical in all four `app.css`; clears the label
-   row and the HUD). The zone carries the kit's `class="on-viewport"`,
-   because the viewport is black in both themes (kit ≥ 2.12) — no local
-   token overrides. Its click / Enter go through `context.files.open`, not
-   the device picker.
+   `.app-drop` CSS block (identical in all four `app.css`; the zone carries
+   the kit's `on-viewport` class, because the viewport is black in both
+   themes, plus one opaque `--glass` line — the kit's glass is translucent
+   and the scene showed through; clears the label row and the HUD). Its
+   click / Enter go through `context.files.open`, not the device picker.
+   The zone is `quiet` (kit ≥ 2.36): files it did not take get one toast
+   from the `_wireDropZone` snippet, built from `sac:rejected`'s
+   `detail.rejected` — the zone hides once a file opens, so its own line
+   would go unseen after a partial drop.
 5. **Settings are remembered:** controls with `data-keep="key"` are saved to
    `context.fs` ("settings") and replayed on mount through their kit event.
    Per-document values (e.g. a threshold fitted to one image) are not kept.
@@ -68,8 +73,10 @@ background-remover, mesh-optimizer, svg-to-3d) — keep them identical.
     through `sac.hotkeys.hold` (kit ≥ 2.12).
 11. **Feedback is visible:** results and warnings go to `sac.toast`, work that
     blocks for more than a moment shows a busy overlay — never console only.
-12. **Kit controls with their limits:** `sac-stepper` only for short integers
-    (its value field is 3ch wide); decimals stay kit-styled number inputs.
+12. **Kit controls with their limits:** `sac-stepper` for numbers, decimals
+    included (kit ≥ 2.12.1 sizes its field to the widest value of min/max) —
+    keep `min`/`max` tight so the pill fits a half-width panel column; it
+    snaps every value to its `step` grid.
     Slider readouts carry a unit or named steps, never a bare technical number.
 13. **Theme toggle** (`sac-theme-toggle` in the nav's `context` slot) only
     standalone — removed when `context.host` is set.
@@ -83,8 +90,9 @@ background-remover, mesh-optimizer, svg-to-3d) — keep them identical.
 
 Shared by the four apps that came out of DREAM TOOLS — keep identical.
 
-- **Dev loop:** `npx serve . -l 3341` (Firepit command "Serve"), F5. `serve.json`
-  disables caching.
+- **Dev loop:** `python3 -m http.server 3341` (Firepit command "Run site"),
+  F5. Node is not on this machine; `serve.json` only matters to whoever
+  serves with `npx serve`.
 - **Test both runtimes — they fail differently.** Standalone (`index.html`,
   vendored kit) AND installed on https://desktop.sacrvm.dev/ (the host's kit
   is live there; the app is injected into the host page). Recipe and a
@@ -111,11 +119,19 @@ Shared by the four apps that came out of DREAM TOOLS — keep identical.
 
 ## Open items
 
-Appkit 2.12.0 closed the reported gaps (vendored 2026-09-25): `canvas.natural`,
-`sac-slider ends`, `.on-viewport`, `sac-menu` folding, and
-`sac.hotkeys.hold(combo, onDown, onUp)` for hold-keys (n/a here — no
-Space-to-pan). Not adopted yet: runtime language switching (`sac.lang`,
-`sac.t()`), collapsible `sac-section`.
+Kit 2.36.0 is vendored (2026-11-09; before that 2.12.0). Taken up from the
+releases in between: the quiet drop zone with one toast per `sac:rejected`
+(2.36), a solid busy pill under reduced transparency / more contrast (2.33).
+Checked and n/a here: `sac-log`, `sac-loader`, `sac-dialog` (no own
+dialogs), explicit toast durations, long-press (the viewports have no
+`contextmenu` listener, so a held finger does nothing). Not adopted yet:
+runtime language switching (`sac.lang`, `sac.t()`), collapsible
+`sac-section`.
+
+Version skew: hosted on the desktop the app runs on the host's kit, so the
+2.36 behaviour (quiet zone, `detail.rejected`) appears only once
+`sacrvm-desktop` re-vendors. The snippet falls back to the bare `files`
+list of an older kit.
 
 Owner decisions open:
 - **Accent colour:** own amber (`app.json` `accent`) vs following the desktop
